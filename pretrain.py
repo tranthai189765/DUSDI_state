@@ -57,10 +57,11 @@ class Workspace:
                              use_wandb=cfg.use_wandb)
         self.train_env, self.eval_env, self.use_gym = make_envs(cfg)
 
-        # create agent
+        # create agent — use eval_env specs (single env, always correct shape)
+        # train_env may be a VecEnv whose observation_spec returns wrong shape
         self.agent = make_agent(cfg.obs_type,
-                                self.train_env.observation_spec(),
-                                self.train_env.action_spec(),
+                                self.eval_env.observation_spec(),
+                                self.eval_env.action_spec(),
                                 cfg.num_seed_frames // cfg.action_repeat,
                                 cfg,
                                 cfg.agent)
