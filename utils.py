@@ -344,6 +344,8 @@ def make_agent(obs_type, obs_spec, action_spec, num_expl_steps, parent_cfg, cfg)
             else:
                 cfg[key] = domain_specific_config[key]
 
+        print(f"DEBUG obs_spec type={type(obs_spec).__name__} shape={obs_spec.shape!r}")
+        print(f"DEBUG action_spec type={type(action_spec).__name__} shape={action_spec.shape!r}")
         update_partition_config(cfg, obs_dim=obs_spec.shape[0], action_dim=action_spec.shape[0])
 
     else:
