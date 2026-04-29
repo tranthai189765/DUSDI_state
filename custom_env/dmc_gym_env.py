@@ -35,16 +35,13 @@ class DMCGymEnv(gym.Env):
         obs_dim = obs.shape[0]
 
         action_spec = self._dm_env.action_spec()
+        act_low = np.broadcast_to(action_spec.minimum, action_spec.shape).astype(np.float32)
+        act_high = np.broadcast_to(action_spec.maximum, action_spec.shape).astype(np.float32)
 
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(obs_dim,), dtype=np.float32
         )
-        self.action_space = spaces.Box(
-            low=action_spec.minimum.astype(np.float32),
-            high=action_spec.maximum.astype(np.float32),
-            shape=action_spec.shape,
-            dtype=np.float32,
-        )
+        self.action_space = spaces.Box(low=act_low, high=act_high, dtype=np.float32)
 
     def reset(self):
         self._step_count = 0
