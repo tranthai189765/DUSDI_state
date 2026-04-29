@@ -5,6 +5,8 @@ import numpy as np
 # these values will be initialized upon agent creation, in utils.py
 SIMP_PAR = None
 USE_IMG = None
+DMC_OBS_DIM = None
+DMC_ACTION_DIM = None
 
 
 def get_env_obs_act_dim(domain, env_config):
@@ -14,6 +16,9 @@ def get_env_obs_act_dim(domain, env_config):
 			action_dim = 20
 		else:
 			action_dim = 50
+	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state']:
+		obs_dim = DMC_OBS_DIM
+		action_dim = DMC_ACTION_DIM
 	else:
 		obs_part, _, action_part = get_env_factorization(domain, 0, 0)
 		obs_dim = sum(obs_part)
@@ -43,6 +48,9 @@ def get_env_factorization(domain, skill_dim, skill_channel):
 	elif domain == "wipe":
 		obs_partition = [96]
 		action_partition = [17]
+	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state']:
+		obs_partition = [DMC_OBS_DIM]
+		action_partition = [DMC_ACTION_DIM]
 	else:
 		# For other domain, this is not implemented yet
 		raise NotImplementedError
@@ -78,6 +86,9 @@ def get_domain_stats(domain, env_config):
 	elif domain == "particle":
 		diayn_dim = N * 1
 		state_partition_points = list(range(0, diayn_dim+1))
+	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state']:
+		diayn_dim = DMC_OBS_DIM
+		state_partition_points = [0, DMC_OBS_DIM]
 	else:
 		raise NotImplementedError
 
@@ -112,6 +123,8 @@ def observation_filter(obs, domain, env_config):
 	elif domain == "particle":
 		idx = np.array(range(env_config.particle.N))
 		return obs[:, idx]
+	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state']:
+		return obs
 	else:
 		print("Domain {} not supported".format(domain))
 		raise NotImplementedError

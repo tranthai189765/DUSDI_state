@@ -1,6 +1,8 @@
 """record supports for each env"""
 
-rv_list = ["moma2d", "particle"] 	# whether we can record video (i.e. gif)
-plot_prediction_list = ["toy", "particle", "moma2d", "particle"]	# whether we can plot prediction net
-no_video_eval_list = ["toy", "particle", "moma2d", "particle"]	# whether we want to save gif during evaluation
-save_image_eval_list = ["toy", "moma2d"]	# whether we want to save image during evaluation
+_DMC_ENVS = ["dmc_humanoid_state", "dmc_quadruped_state"]
+
+rv_list = ["moma2d", "particle"]
+plot_prediction_list = ["toy", "particle", "moma2d", "particle"]
+no_video_eval_list = ["toy", "particle", "moma2d", "particle"] + _DMC_ENVS
+save_image_eval_list = ["toy", "moma2d"]

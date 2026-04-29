@@ -15,3 +15,9 @@ particle:
 igibson:
   fullbox: true  # whether to use x & y of the box for classification
   sep_obj: false  # whether to separate objects
+
+dmc_humanoid_state:
+  episode_length: 1000
+
+dmc_quadruped_state:
+  episode_length: 1000

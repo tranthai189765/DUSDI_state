@@ -39,7 +39,12 @@ def get_single_gym_env(cfg, rank=0):
     :return: a gym environment
     """
 
-    if cfg.domain == "toy":
+    if cfg.domain in ("dmc_humanoid_state", "dmc_quadruped_state"):
+        from custom_env.dmc_gym_env import DMCGymEnv
+        env = DMCGymEnv(cfg.domain,
+                        max_episode_steps=cfg.env[cfg.domain].episode_length,
+                        seed=cfg.seed + rank)
+    elif cfg.domain == "toy":
         env = SimpleGymEnv(max_step=cfg.env.toy.episode_length, stochastic=cfg.env.toy.stochastic,
                            limit=cfg.env.toy.limit)
     elif cfg.domain == "moma2d":

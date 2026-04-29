@@ -319,10 +319,13 @@ class PBE(object):
         return reward
 
 # This is pretty bad, but is a workaround to change the partition util behavior
-def update_partition_config(cfg):
+def update_partition_config(cfg, obs_dim=None, action_dim=None):
     import agent.partition_utils
     agent.partition_utils.SIMP_PAR = cfg.env_config.particle.simplify_action_space
     agent.partition_utils.USE_IMG = cfg.env_config.particle.use_img
+    if cfg.domain in ['dmc_humanoid_state', 'dmc_quadruped_state']:
+        agent.partition_utils.DMC_OBS_DIM = obs_dim
+        agent.partition_utils.DMC_ACTION_DIM = action_dim
 
 def make_agent(obs_type, obs_spec, action_spec, num_expl_steps, parent_cfg, cfg):
     cfg.obs_type = obs_type
@@ -341,7 +344,7 @@ def make_agent(obs_type, obs_spec, action_spec, num_expl_steps, parent_cfg, cfg)
             else:
                 cfg[key] = domain_specific_config[key]
 
-        update_partition_config(cfg)
+        update_partition_config(cfg, obs_dim=obs_spec.shape[0], action_dim=action_spec.shape[0])
 
     else:
         with open_dict(cfg):
