@@ -42,6 +42,7 @@ class DMCGymEnv(gym.Env):
         self.action_space = spaces.Box(
             low=action_spec.minimum.astype(np.float32),
             high=action_spec.maximum.astype(np.float32),
+            shape=action_spec.shape,
             dtype=np.float32,
         )
 
