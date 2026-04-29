@@ -348,15 +348,6 @@ class Workspace:
                 with anti.open('wb') as f:
                     torch.save(self.agent.anti_diayn.state_dict(), f)
 
-        # save full agent object and config for inference
-        snapshot = snapshot_dir / f'snapshot_{self.global_frame}.pt'
-        payload = {
-            'agent': self.agent,
-            '_global_step': self._global_step,
-            '_global_episode': self._global_episode,
-        }
-        with snapshot.open('wb') as f:
-            torch.save(payload, f)
         cfg_path = snapshot_dir / f'cfg_{self.global_frame}.yaml'
         OmegaConf.save(self.cfg, cfg_path)
 
