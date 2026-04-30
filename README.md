@@ -70,6 +70,26 @@ Uses `gymnasium-robotics`. Observation: ant proprioceptive state (27) + achieved
 
 Supported variants: `antmaze_umaze` (700 steps), `antmaze_medium_play`, `antmaze_medium_diverse`, `antmaze_large_play`, `antmaze_large_diverse` (1000 steps each).
 
+### Ant-v5 (gymnasium MuJoCo)
+
+Uses `gymnasium[mujoco]`. Install:
+
+```sh
+pip install "gymnasium[mujoco]"
+```
+
+Observation: **27 dims** (`exclude_current_positions_from_observation=True`):
+
+| Indices | Description |
+|---------|-------------|
+| `[0]` | z-position of torso |
+| `[1:5]` | quaternion orientation (w, x, y, z) |
+| `[5:13]` | 8 joint angles |
+| `[13:19]` | 6 body velocities (vx, vy, vz, roll, pitch, yaw) |
+| `[19:27]` | 8 joint velocities |
+
+Action space: **8 dims**, in `[-1, 1]`. Episode length: **1000 steps**. Consistent with TIME's `domain=ant`.
+
 ---
 
 ## Pre-training
@@ -117,17 +137,35 @@ python pretrain.py domain=antmaze_medium_play use_wandb=false use_tb=true
 python pretrain.py domain=antmaze_large_play use_wandb=false use_tb=true
 ```
 
+### Ant-v5 (gymnasium MuJoCo, consistent with TIME `domain=ant`)
+
+```sh
+python pretrain.py domain=ant_v5 use_wandb=false use_tb=true
+```
+
+With custom seed and GPU:
+
+```sh
+python pretrain.py domain=ant_v5 seed=1 cuda_id=0 use_wandb=false use_tb=true
+```
+
+With W&B logging:
+
+```sh
+python pretrain.py domain=ant_v5 seed=1 cuda_id=0 use_wandb=true
+```
+
 Algorithm hyperparameters per environment (defined in `agent/dusdi_diayn.yaml`):
 
-| Parameter | Humanoid | Quadruped | Hopper | Cheetah | AntMaze |
-|-----------|----------|-----------|--------|---------|---------|
-| `skill_dim` | 2 | 4 | 2 | 2 | 2 |
-| `update_skill_every_step` | 200 | 200 | 200 | 200 | 200 |
-| `init_temperature` | 0.1 | 0.1 | 0.1 | 0.1 | 0.1 |
-| `nstep` | 1 | 1 | 1 | 1 | 1 |
-| `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt |
-| `step_count_threshold` | 20 | 20 | 20 | 20 | 50 |
-| `sac` | true | true | true | true | true |
+| Parameter | Humanoid | Quadruped | Hopper | Cheetah | AntMaze | **Ant-v5** |
+|-----------|----------|-----------|--------|---------|---------|-----------|
+| `skill_dim` | 2 | 4 | 2 | 2 | 2 | **4** |
+| `update_skill_every_step` | 200 | 200 | 200 | 200 | 200 | **200** |
+| `init_temperature` | 0.1 | 0.1 | 0.1 | 0.1 | 0.1 | **0.1** |
+| `nstep` | 1 | 1 | 1 | 1 | 1 | **1** |
+| `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt | **mask_unwt** |
+| `step_count_threshold` | 20 | 20 | 20 | 20 | 50 | **20** |
+| `sac` | true | true | true | true | true | **true** |
 
 Snapshots are saved to:
 ```

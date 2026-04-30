@@ -16,7 +16,7 @@ _ALL_STATE_ENVS = [
 
 # Ant-v5 (gymnasium) fixed dims — does NOT use DMC_OBS_DIM global
 # Obs: z(1) + quat(4) + joints(8) + body_vel(6) + joint_vel(8) = 27
-# Partition: [0,13] body config | [13,27] velocities  →  2 skill channels
+# Single channel [0, 27], consistent with DUSDi state env convention
 _ANT_V5_OBS_DIM = 27
 _ANT_V5_ACTION_DIM = 8
 
@@ -105,9 +105,9 @@ def get_domain_stats(domain, env_config):
 		diayn_dim = DMC_OBS_DIM
 		state_partition_points = [0, DMC_OBS_DIM]
 	elif domain in _ANT_V5_ENVS:
-		# 2 channels: body config [0:13] | velocities [13:27]
+		# single channel over full obs (consistent with other DUSDi state envs)
 		diayn_dim = _ANT_V5_OBS_DIM
-		state_partition_points = [0, 13, _ANT_V5_OBS_DIM]
+		state_partition_points = [0, _ANT_V5_OBS_DIM]
 	else:
 		raise NotImplementedError
 

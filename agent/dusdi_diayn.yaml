@@ -181,7 +181,6 @@ training_params:
         skill_dim: 2
         nstep: 1
     ant_v5:
-        # 2 skill channels x skill_dim=4 = 16 skill combos (matches TIME skill_dim=16)
         sac: true
         init_temperature: 0.1
         update_skill_every_step: 200
@@ -189,4 +188,4 @@ training_params:
         critic_type: mask_unwt
         step_count_threshold: 20
         skill_dim: 4
-        nstep: 3
+        nstep: 1
