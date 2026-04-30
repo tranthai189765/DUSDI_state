@@ -20,7 +20,18 @@ def gym_timestep_to_dm_env_timestep(gym_timestep, n_envs, discount=1.0):
 			observation = np.array(observation, dtype=np.float32)
 		if done.any():
 			assert done.all()
-			new_discount = discount * np.ones([n_envs, 1], dtype=np.float32)
+			# Match TIME: discount=0 when truly terminated (goal reached),
+			# discount=1 when only truncated (time limit).
+			if n_envs == 1:
+				info_dict = info[0] if isinstance(info[0], dict) else {}
+				is_terminated = bool(info_dict.get('terminated', False))
+			else:
+				is_terminated = any(
+					(i.get('terminated', False) if isinstance(i, dict) else False)
+					for i in info
+				)
+			episode_discount = 0.0 if is_terminated else discount
+			new_discount = episode_discount * np.ones([n_envs, 1], dtype=np.float32)
 			return dm_env.TimeStep(
 				dm_env.StepType.LAST, reward, new_discount, observation), info
 		else:

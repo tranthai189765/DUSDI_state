@@ -69,6 +69,11 @@ class AntMazeGymEnv(gym.Env):
     def step(self, action):
         obs, reward, terminated, truncated, info = self._env.step(action)
         done = terminated or truncated
+        # Pass terminated so Gym2DMWrapper can set discount=0 on true termination
+        # (goal reached), vs discount=1 on truncation (time limit) — matches TIME.
+        if not isinstance(info, dict):
+            info = {}
+        info['terminated'] = terminated
         return self._flatten_obs(obs), float(reward), done, info
 
     def seed(self, seed=None):
