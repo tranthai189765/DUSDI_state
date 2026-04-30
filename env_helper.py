@@ -6,7 +6,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 from custom_env.simple_dm_env import SimpleDMEnv
 from custom_env.simple_gym_env import SimpleGymEnv
 from custom_env.moma_2d_gym_env import MoMa2DGymEnv
-from env.env_list import _ANTMAZE_ENVS
+from env.env_list import _ANTMAZE_ENVS, _ANT_V5_ENVS
 import copy
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -48,6 +48,12 @@ def get_single_gym_env(cfg, rank=0):
     elif cfg.domain in _ANTMAZE_ENVS:
         from custom_env.antmaze_gym_env import AntMazeGymEnv
         env = AntMazeGymEnv(cfg.domain, seed=cfg.seed + rank)
+    elif cfg.domain in _ANT_V5_ENVS:
+        from custom_env.ant_v5_gym_env import AntV5GymEnv
+        env = AntV5GymEnv(
+            seed=cfg.seed + rank,
+            max_episode_steps=cfg.env[cfg.domain].episode_length,
+        )
     elif cfg.domain == "toy":
         env = SimpleGymEnv(max_step=cfg.env.toy.episode_length, stochastic=cfg.env.toy.stochastic,
                            limit=cfg.env.toy.limit)

@@ -10,7 +10,9 @@ _ANTMAZE_ENVS = [
     "antmaze_large_diverse",
 ]
 
+_ANT_V5_ENVS = ["ant_v5"]
+
 rv_list = ["moma2d", "particle"]
 plot_prediction_list = ["toy", "particle", "moma2d", "particle"]
-no_video_eval_list = ["toy", "particle", "moma2d", "particle"] + _DMC_ENVS + _ANTMAZE_ENVS
+no_video_eval_list = ["toy", "particle", "moma2d", "particle"] + _DMC_ENVS + _ANTMAZE_ENVS + _ANT_V5_ENVS
 save_image_eval_list = ["toy", "moma2d"]

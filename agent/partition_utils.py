@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-from env.env_list import _ANTMAZE_ENVS
+from env.env_list import _ANTMAZE_ENVS, _ANT_V5_ENVS
 
 # these values will be initialized upon agent creation, in utils.py
 SIMP_PAR = None
@@ -14,6 +14,12 @@ _ALL_STATE_ENVS = [
     'dmc_hopper_state', 'dmc_cheetah_state',
 ] + _ANTMAZE_ENVS
 
+# Ant-v5 (gymnasium) fixed dims — does NOT use DMC_OBS_DIM global
+# Obs: z(1) + quat(4) + joints(8) + body_vel(6) + joint_vel(8) = 27
+# Partition: [0,13] body config | [13,27] velocities  →  2 skill channels
+_ANT_V5_OBS_DIM = 27
+_ANT_V5_ACTION_DIM = 8
+
 
 def get_env_obs_act_dim(domain, env_config):
 	if domain == "particle":
@@ -25,6 +31,9 @@ def get_env_obs_act_dim(domain, env_config):
 	elif domain in _ALL_STATE_ENVS:
 		obs_dim = DMC_OBS_DIM
 		action_dim = DMC_ACTION_DIM
+	elif domain in _ANT_V5_ENVS:
+		obs_dim = _ANT_V5_OBS_DIM
+		action_dim = _ANT_V5_ACTION_DIM
 	else:
 		obs_part, _, action_part = get_env_factorization(domain, 0, 0)
 		obs_dim = sum(obs_part)
@@ -95,6 +104,10 @@ def get_domain_stats(domain, env_config):
 	elif domain in _ALL_STATE_ENVS:
 		diayn_dim = DMC_OBS_DIM
 		state_partition_points = [0, DMC_OBS_DIM]
+	elif domain in _ANT_V5_ENVS:
+		# 2 channels: body config [0:13] | velocities [13:27]
+		diayn_dim = _ANT_V5_OBS_DIM
+		state_partition_points = [0, 13, _ANT_V5_OBS_DIM]
 	else:
 		raise NotImplementedError
 
@@ -130,6 +143,8 @@ def observation_filter(obs, domain, env_config):
 		idx = np.array(range(env_config.particle.N))
 		return obs[:, idx]
 	elif domain in _ALL_STATE_ENVS:
+		return obs
+	elif domain in _ANT_V5_ENVS:
 		return obs
 	else:
 		print("Domain {} not supported".format(domain))
