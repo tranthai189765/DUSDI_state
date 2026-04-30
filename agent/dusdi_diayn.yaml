@@ -189,4 +189,4 @@ training_params:
         critic_type: mask_unwt
         step_count_threshold: 20
         skill_dim: 4
-        nstep: 1
+        nstep: 3

@@ -50,7 +50,7 @@ experiment:
   ${exp_group}
 
 # snapshot
-snapshots: [100000, 500000, 1000000, 2000000, 3000000, 4000000]
+snapshots: [100000, 500000, 1000000, 2000000]
 snapshot_dir: ../../../models/${obs_type}/${domain}/${experiment}/${seed}
 
 
