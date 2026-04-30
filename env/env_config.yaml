@@ -21,3 +21,6 @@ dmc_humanoid_state:
 
 dmc_quadruped_state:
   episode_length: 1000
+
+dmc_hopper_state:
+  episode_length: 1000

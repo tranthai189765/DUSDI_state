@@ -16,6 +16,7 @@ class DMCGymEnv(gym.Env):
     _TASK_MAP = {
         'dmc_humanoid_state': ('humanoid', 'run'),
         'dmc_quadruped_state': ('quadruped', 'run'),
+        'dmc_hopper_state': ('hopper', 'hop'),
     }
 
     def __init__(self, domain_key, max_episode_steps=1000, seed=0):

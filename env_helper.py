@@ -39,7 +39,7 @@ def get_single_gym_env(cfg, rank=0):
     :return: a gym environment
     """
 
-    if cfg.domain in ("dmc_humanoid_state", "dmc_quadruped_state"):
+    if cfg.domain in ("dmc_humanoid_state", "dmc_quadruped_state", "dmc_hopper_state"):
         from custom_env.dmc_gym_env import DMCGymEnv
         env = DMCGymEnv(cfg.domain,
                         max_episode_steps=cfg.env[cfg.domain].episode_length,
