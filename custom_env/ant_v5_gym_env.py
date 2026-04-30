@@ -34,6 +34,7 @@ class AntV5GymEnv(gym.Env):
             'Ant-v5',
             render_mode=None,
             max_episode_steps=max_episode_steps,
+            terminate_when_unhealthy=False,
         )
         self._seed = seed
         self._seeded = False
