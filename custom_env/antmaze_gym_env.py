@@ -32,7 +32,9 @@ class AntMazeGymEnv(gym.Env):
             ) from e
 
         env_id = _TASK_MAP[domain_key]
-        self._env = gymnasium.make(env_id, render_mode='rgb_array')
+        # render_mode=None avoids EGL context issues when forked in SubprocVecEnv.
+        # Antmaze is in no_video_eval_list so render() is never called during training.
+        self._env = gymnasium.make(env_id, render_mode=None)
         self._seed = seed
         self._seeded = False
 
