@@ -24,3 +24,6 @@ dmc_quadruped_state:
 
 dmc_hopper_state:
   episode_length: 1000
+
+dmc_cheetah_state:
+  episode_length: 1000

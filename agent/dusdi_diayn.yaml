@@ -126,3 +126,12 @@ training_params:
         step_count_threshold: 20
         skill_dim: 2
         nstep: 1
+    dmc_cheetah_state:
+        sac: true
+        init_temperature: 0.1
+        update_skill_every_step: 200
+        use_spectral_norm: false
+        critic_type: mask_unwt
+        step_count_threshold: 20
+        skill_dim: 2
+        nstep: 1

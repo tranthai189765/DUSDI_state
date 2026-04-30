@@ -38,7 +38,7 @@ cd ..
 
 No additional setup required.
 
-### DMC — Humanoid, Quadruped & Hopper
+### DMC — Humanoid, Quadruped, Hopper & Cheetah
 
 Uses `dm_control` with MuJoCo physics. Set the rendering backend before running:
 
@@ -83,20 +83,26 @@ python pretrain.py domain=dmc_quadruped_state use_wandb=false use_tb=true n_env=
 ### DMC Hopper (standard dm_control, task: `hopper hop`)
 
 ```sh
-python pretrain.py domain=dmc_hopper_state use_wandb=false use_tb=true n_env=1
+python pretrain.py domain=dmc_hopper_state use_wandb=false use_tb=true
+```
+
+### DMC Cheetah (standard dm_control, task: `cheetah run`)
+
+```sh
+python pretrain.py domain=dmc_cheetah_state use_wandb=false use_tb=true
 ```
 
 Algorithm hyperparameters used per DMC environment (defined in `agent/dusdi_diayn.yaml`):
 
-| Parameter | Humanoid | Quadruped | Hopper |
-|-----------|----------|-----------|--------|
-| `skill_dim` | 2 | 4 | 2 |
-| `update_skill_every_step` | 200 | 200 | 200 |
-| `init_temperature` | 0.1 | 0.1 | 0.1 |
-| `nstep` | 1 | 1 | 1 |
-| `critic_type` | mask_unwt | mask_unwt | mask_unwt |
-| `step_count_threshold` | 20 | 20 | 20 |
-| `sac` | true | true | true |
+| Parameter | Humanoid | Quadruped | Hopper | Cheetah |
+|-----------|----------|-----------|--------|---------|
+| `skill_dim` | 2 | 4 | 2 | 2 |
+| `update_skill_every_step` | 200 | 200 | 200 | 200 |
+| `init_temperature` | 0.1 | 0.1 | 0.1 | 0.1 |
+| `nstep` | 1 | 1 | 1 | 1 |
+| `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt |
+| `step_count_threshold` | 20 | 20 | 20 | 20 |
+| `sac` | true | true | true | true |
 
 Snapshots are saved to:
 ```

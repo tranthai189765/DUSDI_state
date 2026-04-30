@@ -1,6 +1,6 @@
 """record supports for each env"""
 
-_DMC_ENVS = ["dmc_humanoid_state", "dmc_quadruped_state", "dmc_hopper_state"]
+_DMC_ENVS = ["dmc_humanoid_state", "dmc_quadruped_state", "dmc_hopper_state", "dmc_cheetah_state"]
 
 rv_list = ["moma2d", "particle"]
 plot_prediction_list = ["toy", "particle", "moma2d", "particle"]
