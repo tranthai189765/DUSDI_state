@@ -30,6 +30,12 @@ pip install -e .
 cd ..
 ```
 
+### 4. Install gymnasium-robotics (for AntMaze environment)
+
+```sh
+pip install gymnasium-robotics
+```
+
 ---
 
 ## Environments
@@ -58,6 +64,12 @@ On headless servers (no display), `egl` requires the EGL libraries:
 sudo apt-get install libgl1-mesa-dev libegl1-mesa-dev
 ```
 
+### AntMaze
+
+Uses `gymnasium-robotics`. Observation: ant proprioceptive state (27) + achieved\_goal (2) + desired\_goal (2) = **31 dims**. Action space: **8 dims**, already in `[-1, 1]`. Consistent with TIME's `domain=antmaze` (`AntMaze_UMaze-v5` as primal task).
+
+Supported variants: `antmaze_umaze` (700 steps), `antmaze_medium_play`, `antmaze_medium_diverse`, `antmaze_large_play`, `antmaze_large_diverse` (1000 steps each).
+
 ---
 
 ## Pre-training
@@ -71,13 +83,13 @@ python pretrain.py agent=dusdi_diayn domain=particle agent.skill_dim=5 env.parti
 ### DMC Humanoid (standard dm_control)
 
 ```sh
-python pretrain.py domain=dmc_humanoid_state use_wandb=false use_tb=true n_env=1
+python pretrain.py domain=dmc_humanoid_state use_wandb=false use_tb=true
 ```
 
 ### DMC Quadruped (standard dm_control, consistent with url_benchmark)
 
 ```sh
-python pretrain.py domain=dmc_quadruped_state use_wandb=false use_tb=true n_env=1
+python pretrain.py domain=dmc_quadruped_state use_wandb=false use_tb=true
 ```
 
 ### DMC Hopper (standard dm_control, task: `hopper hop`)
@@ -92,17 +104,30 @@ python pretrain.py domain=dmc_hopper_state use_wandb=false use_tb=true
 python pretrain.py domain=dmc_cheetah_state use_wandb=false use_tb=true
 ```
 
-Algorithm hyperparameters used per DMC environment (defined in `agent/dusdi_diayn.yaml`):
+### AntMaze UMaze (gymnasium-robotics, consistent with TIME `domain=antmaze`)
 
-| Parameter | Humanoid | Quadruped | Hopper | Cheetah |
-|-----------|----------|-----------|--------|---------|
-| `skill_dim` | 2 | 4 | 2 | 2 |
-| `update_skill_every_step` | 200 | 200 | 200 | 200 |
-| `init_temperature` | 0.1 | 0.1 | 0.1 | 0.1 |
-| `nstep` | 1 | 1 | 1 | 1 |
-| `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt |
-| `step_count_threshold` | 20 | 20 | 20 | 20 |
-| `sac` | true | true | true | true |
+```sh
+python pretrain.py domain=antmaze_umaze use_wandb=false use_tb=true
+```
+
+Other AntMaze variants:
+
+```sh
+python pretrain.py domain=antmaze_medium_play use_wandb=false use_tb=true
+python pretrain.py domain=antmaze_large_play use_wandb=false use_tb=true
+```
+
+Algorithm hyperparameters per environment (defined in `agent/dusdi_diayn.yaml`):
+
+| Parameter | Humanoid | Quadruped | Hopper | Cheetah | AntMaze |
+|-----------|----------|-----------|--------|---------|---------|
+| `skill_dim` | 2 | 4 | 2 | 2 | 2 |
+| `update_skill_every_step` | 200 | 200 | 200 | 200 | 200 |
+| `init_temperature` | 0.1 | 0.1 | 0.1 | 0.1 | 0.1 |
+| `nstep` | 1 | 1 | 1 | 1 | 1 |
+| `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt |
+| `step_count_threshold` | 20 | 20 | 20 | 20 | 50 |
+| `sac` | true | true | true | true | true |
 
 Snapshots are saved to:
 ```

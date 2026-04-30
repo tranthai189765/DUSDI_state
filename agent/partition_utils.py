@@ -1,12 +1,18 @@
 import torch
 import numpy as np
 
+from env.env_list import _ANTMAZE_ENVS
 
 # these values will be initialized upon agent creation, in utils.py
 SIMP_PAR = None
 USE_IMG = None
 DMC_OBS_DIM = None
 DMC_ACTION_DIM = None
+
+_ALL_STATE_ENVS = [
+    'dmc_humanoid_state', 'dmc_quadruped_state',
+    'dmc_hopper_state', 'dmc_cheetah_state',
+] + _ANTMAZE_ENVS
 
 
 def get_env_obs_act_dim(domain, env_config):
@@ -16,7 +22,7 @@ def get_env_obs_act_dim(domain, env_config):
 			action_dim = 20
 		else:
 			action_dim = 50
-	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state', 'dmc_hopper_state', 'dmc_cheetah_state']:
+	elif domain in _ALL_STATE_ENVS:
 		obs_dim = DMC_OBS_DIM
 		action_dim = DMC_ACTION_DIM
 	else:
@@ -48,7 +54,7 @@ def get_env_factorization(domain, skill_dim, skill_channel):
 	elif domain == "wipe":
 		obs_partition = [96]
 		action_partition = [17]
-	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state', 'dmc_hopper_state', 'dmc_cheetah_state']:
+	elif domain in _ALL_STATE_ENVS:
 		obs_partition = [DMC_OBS_DIM]
 		action_partition = [DMC_ACTION_DIM]
 	else:
@@ -86,7 +92,7 @@ def get_domain_stats(domain, env_config):
 	elif domain == "particle":
 		diayn_dim = N * 1
 		state_partition_points = list(range(0, diayn_dim+1))
-	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state', 'dmc_hopper_state', 'dmc_cheetah_state']:
+	elif domain in _ALL_STATE_ENVS:
 		diayn_dim = DMC_OBS_DIM
 		state_partition_points = [0, DMC_OBS_DIM]
 	else:
@@ -123,7 +129,7 @@ def observation_filter(obs, domain, env_config):
 	elif domain == "particle":
 		idx = np.array(range(env_config.particle.N))
 		return obs[:, idx]
-	elif domain in ['dmc_humanoid_state', 'dmc_quadruped_state', 'dmc_hopper_state', 'dmc_cheetah_state']:
+	elif domain in _ALL_STATE_ENVS:
 		return obs
 	else:
 		print("Domain {} not supported".format(domain))

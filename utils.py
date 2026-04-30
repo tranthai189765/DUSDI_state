@@ -323,7 +323,7 @@ def update_partition_config(cfg, obs_dim=None, action_dim=None):
     import agent.partition_utils
     agent.partition_utils.SIMP_PAR = cfg.env_config.particle.simplify_action_space
     agent.partition_utils.USE_IMG = cfg.env_config.particle.use_img
-    if cfg.domain in ['dmc_humanoid_state', 'dmc_quadruped_state', 'dmc_hopper_state', 'dmc_cheetah_state']:
+    if cfg.domain in agent.partition_utils._ALL_STATE_ENVS:
         agent.partition_utils.DMC_OBS_DIM = obs_dim
         agent.partition_utils.DMC_ACTION_DIM = action_dim
 
