@@ -67,9 +67,8 @@ def get_env_factorization(domain, skill_dim, skill_channel):
 		obs_partition = [DMC_OBS_DIM]
 		action_partition = [DMC_ACTION_DIM]
 	elif domain in _ANT_V5_ENVS:
-		# obs split matches state_partition_points [0, 13, 27]
-		obs_partition = [13, 14]   # body config (z,quat,joints) | velocities
-		action_partition = [8]     # 8 joint torques as one group
+		obs_partition = [_ANT_V5_OBS_DIM]   # full obs as single chunk
+		action_partition = [_ANT_V5_ACTION_DIM]
 	else:
 		# For other domain, this is not implemented yet
 		raise NotImplementedError
@@ -109,9 +108,9 @@ def get_domain_stats(domain, env_config):
 		diayn_dim = DMC_OBS_DIM
 		state_partition_points = [0, DMC_OBS_DIM]
 	elif domain in _ANT_V5_ENVS:
-		# 2 channels: body config [0:13] (z, quat, 8 joints) | velocities [13:27]
+		# 1 channel over full obs (consistent with other DUSDi state envs)
 		diayn_dim = _ANT_V5_OBS_DIM
-		state_partition_points = [0, 13, _ANT_V5_OBS_DIM]
+		state_partition_points = [0, _ANT_V5_OBS_DIM]
 	else:
 		raise NotImplementedError
 
