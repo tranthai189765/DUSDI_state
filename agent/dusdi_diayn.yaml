@@ -106,7 +106,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 20
-        skill_dim: 2
+        skill_dim: 4  # 3 channels → 4^3 = 64 skills
         nstep: 1
     dmc_quadruped_state:
         sac: true
@@ -115,7 +115,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 20
-        skill_dim: 4
+        skill_dim: 4  # 2 channels → 4^2 = 16 skills
         nstep: 1
     dmc_hopper_state:
         sac: true
@@ -124,7 +124,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 20
-        skill_dim: 2
+        skill_dim: 4  # 2 channels → 4^2 = 16 skills
         nstep: 1
     dmc_cheetah_state:
         sac: true
@@ -133,7 +133,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 20
-        skill_dim: 2
+        skill_dim: 4  # 2 channels → 4^2 = 16 skills
         nstep: 1
     antmaze_umaze:
         sac: true

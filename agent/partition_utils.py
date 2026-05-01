@@ -16,6 +16,17 @@ _ANT_V5_PROPRIO_END = 13  # split point: channel 0 = [0:13], channel 1 = [13:obs
 # 3 channels: [0:13] pose | [13:27] velocity | [27:31] goal info
 _ANTMAZE_BODY_END = 27  # boundary between velocity and goal dims
 
+# DMC per-env split points (verified from dm_control obs structure)
+# cheetah (17): position(8) | velocity(9)
+_CHEETAH_POSE_END = 8
+# hopper (15): position(6) | velocity(7)+touch(2)
+_HOPPER_POSE_END = 6
+# humanoid (67): joint_angles(21) | spatial(head+extremities+torso_vert=16) | velocities(com+joints=30)
+_HUMANOID_JOINT_END = 21
+_HUMANOID_SPATIAL_END = 37   # 21+16
+# quadruped (78): egocentric_state(44) | torso_vel+upright+imu+force_torque(34)
+_QUADRUPED_EGOCENTRIC_END = 44
+
 _ALL_STATE_ENVS = [
     'dmc_humanoid_state', 'dmc_quadruped_state',
     'dmc_hopper_state', 'dmc_cheetah_state',
@@ -68,6 +79,22 @@ def get_env_factorization(domain, skill_dim, skill_channel):
 		# 3 channels: pose [0:13] | velocity [13:27] | goal info [27:31]
 		obs_partition = [_ANT_V5_PROPRIO_END, _ANTMAZE_BODY_END - _ANT_V5_PROPRIO_END, DMC_OBS_DIM - _ANTMAZE_BODY_END]
 		action_partition = [DMC_ACTION_DIM]
+	elif domain == 'dmc_cheetah_state':
+		# 2 channels: joint positions [0:8] | velocities [8:17]
+		obs_partition = [_CHEETAH_POSE_END, DMC_OBS_DIM - _CHEETAH_POSE_END]
+		action_partition = [DMC_ACTION_DIM]
+	elif domain == 'dmc_hopper_state':
+		# 2 channels: joint positions [0:6] | velocities+touch [6:15]
+		obs_partition = [_HOPPER_POSE_END, DMC_OBS_DIM - _HOPPER_POSE_END]
+		action_partition = [DMC_ACTION_DIM]
+	elif domain == 'dmc_humanoid_state':
+		# 3 channels: joint_angles [0:21] | spatial [21:37] | velocities [37:67]
+		obs_partition = [_HUMANOID_JOINT_END, _HUMANOID_SPATIAL_END - _HUMANOID_JOINT_END, DMC_OBS_DIM - _HUMANOID_SPATIAL_END]
+		action_partition = [DMC_ACTION_DIM]
+	elif domain == 'dmc_quadruped_state':
+		# 2 channels: egocentric_state [0:44] | dynamics [44:78]
+		obs_partition = [_QUADRUPED_EGOCENTRIC_END, DMC_OBS_DIM - _QUADRUPED_EGOCENTRIC_END]
+		action_partition = [DMC_ACTION_DIM]
 	elif domain in _ALL_STATE_ENVS:
 		obs_partition = [DMC_OBS_DIM]
 		action_partition = [DMC_ACTION_DIM]
@@ -114,6 +141,22 @@ def get_domain_stats(domain, env_config):
 		# 3 channels: pose [0:13] | velocity [13:27] | goal info [27:31]
 		diayn_dim = DMC_OBS_DIM  # 31
 		state_partition_points = [0, _ANT_V5_PROPRIO_END, _ANTMAZE_BODY_END, DMC_OBS_DIM]
+	elif domain == 'dmc_cheetah_state':
+		# 2 channels: positions [0:8] | velocities [8:17]
+		diayn_dim = DMC_OBS_DIM
+		state_partition_points = [0, _CHEETAH_POSE_END, DMC_OBS_DIM]
+	elif domain == 'dmc_hopper_state':
+		# 2 channels: positions [0:6] | velocities+touch [6:15]
+		diayn_dim = DMC_OBS_DIM
+		state_partition_points = [0, _HOPPER_POSE_END, DMC_OBS_DIM]
+	elif domain == 'dmc_humanoid_state':
+		# 3 channels: joint_angles [0:21] | spatial [21:37] | velocities [37:67]
+		diayn_dim = DMC_OBS_DIM
+		state_partition_points = [0, _HUMANOID_JOINT_END, _HUMANOID_SPATIAL_END, DMC_OBS_DIM]
+	elif domain == 'dmc_quadruped_state':
+		# 2 channels: egocentric_state [0:44] | dynamics [44:78]
+		diayn_dim = DMC_OBS_DIM
+		state_partition_points = [0, _QUADRUPED_EGOCENTRIC_END, DMC_OBS_DIM]
 	elif domain in _ALL_STATE_ENVS:
 		diayn_dim = DMC_OBS_DIM
 		state_partition_points = [0, DMC_OBS_DIM]
