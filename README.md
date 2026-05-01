@@ -106,10 +106,24 @@ python pretrain.py agent=dusdi_diayn domain=particle agent.skill_dim=5 env.parti
 python pretrain.py domain=dmc_humanoid_state use_wandb=false use_tb=true
 ```
 
+Custom skill_dim (default 4 → 4³ = 64 skills):
+```sh
+python pretrain.py domain=dmc_humanoid_state \
+  "agent.training_params.dmc_humanoid_state.skill_dim=3" \
+  use_wandb=false use_tb=true
+```
+
 ### DMC Quadruped (standard dm_control, consistent with url_benchmark)
 
 ```sh
 python pretrain.py domain=dmc_quadruped_state use_wandb=false use_tb=true
+```
+
+Custom skill_dim (default 4 → 4² = 16 skills):
+```sh
+python pretrain.py domain=dmc_quadruped_state \
+  "agent.training_params.dmc_quadruped_state.skill_dim=2" \
+  use_wandb=false use_tb=true
 ```
 
 ### DMC Hopper (standard dm_control, task: `hopper hop`)
@@ -118,23 +132,50 @@ python pretrain.py domain=dmc_quadruped_state use_wandb=false use_tb=true
 python pretrain.py domain=dmc_hopper_state use_wandb=false use_tb=true
 ```
 
+Custom skill_dim (default 4 → 4² = 16 skills):
+```sh
+python pretrain.py domain=dmc_hopper_state \
+  "agent.training_params.dmc_hopper_state.skill_dim=2" \
+  use_wandb=false use_tb=true
+```
+
 ### DMC Cheetah (standard dm_control, task: `cheetah run`)
 
 ```sh
 python pretrain.py domain=dmc_cheetah_state use_wandb=false use_tb=true
 ```
 
-### AntMaze UMaze (gymnasium-robotics, consistent with TIME `domain=antmaze`)
-
+Custom skill_dim (default 4 → 4² = 16 skills):
 ```sh
-python pretrain.py domain=antmaze_umaze use_wandb=false use_tb=true
+python pretrain.py domain=dmc_cheetah_state \
+  "agent.training_params.dmc_cheetah_state.skill_dim=2" \
+  use_wandb=false use_tb=true
 ```
 
-Other AntMaze variants:
+### AntMaze (gymnasium-robotics, consistent with TIME `domain=antmaze`)
 
 ```sh
+# Easy — U-shaped maze (700 steps/episode)
+python pretrain.py domain=antmaze_umaze use_wandb=false use_tb=true
+
+# Medium — BigMaze, random start+goal (1000 steps/episode)
 python pretrain.py domain=antmaze_medium_play use_wandb=false use_tb=true
+
+# Medium — BigMaze, diverse goal only
+python pretrain.py domain=antmaze_medium_diverse use_wandb=false use_tb=true
+
+# Hard — HardestMaze, random start+goal
 python pretrain.py domain=antmaze_large_play use_wandb=false use_tb=true
+
+# Hard — HardestMaze, diverse goal only
+python pretrain.py domain=antmaze_large_diverse use_wandb=false use_tb=true
+```
+
+Custom skill_dim (default 4 → 4³ = 64 skills):
+```sh
+python pretrain.py domain=antmaze_umaze \
+  "agent.training_params.antmaze_umaze.skill_dim=2" \
+  use_wandb=false use_tb=true
 ```
 
 ### Ant-v5 (gymnasium MuJoCo, consistent with TIME `domain=ant`)
@@ -144,28 +185,60 @@ python pretrain.py domain=ant_v5 use_wandb=false use_tb=true
 ```
 
 With custom seed and GPU:
-
 ```sh
 python pretrain.py domain=ant_v5 seed=1 cuda_id=0 use_wandb=false use_tb=true
 ```
 
-With W&B logging:
+Custom skill_dim (default 4 → 4² = 16 skills):
+```sh
+python pretrain.py domain=ant_v5 \
+  "agent.training_params.ant_v5.skill_dim=2" \
+  use_wandb=false use_tb=true
+```
 
+With W&B logging:
 ```sh
 python pretrain.py domain=ant_v5 seed=1 cuda_id=0 use_wandb=true
 ```
 
-Algorithm hyperparameters per environment (defined in `agent/dusdi_diayn.yaml`):
+---
 
-| Parameter | Humanoid | Quadruped | Hopper | Cheetah | AntMaze | **Ant-v5** |
-|-----------|----------|-----------|--------|---------|---------|-----------|
-| `skill_dim` | 2 | 4 | 2 | 2 | 2 | **4** |
-| `update_skill_every_step` | 200 | 200 | 200 | 200 | 200 | **200** |
-| `init_temperature` | 0.1 | 0.1 | 0.1 | 0.1 | 0.1 | **0.1** |
-| `nstep` | 1 | 1 | 1 | 1 | 1 | **1** |
-| `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt | **mask_unwt** |
-| `step_count_threshold` | 20 | 20 | 20 | 20 | 50 | **20** |
-| `sac` | true | true | true | true | true | **true** |
+## Skill Channel Configuration
+
+Each environment's observation is split into **channels**; each channel gets its own skill discriminator. Total skills = `skill_dim ^ num_channels`.
+
+### Observation partition per environment
+
+| Environment | Obs dim | Channels | Partition | Default `skill_dim` | Total skills |
+|---|---|---|---|---|---|
+| `dmc_cheetah_state` | 17 | 2 | `[0:8]` joint angles \| `[8:17]` velocities | 4 | **16** |
+| `dmc_hopper_state` | 15 | 2 | `[0:6]` joint angles \| `[6:15]` velocities+touch | 4 | **16** |
+| `dmc_quadruped_state` | 78 | 2 | `[0:44]` egocentric state \| `[44:78]` dynamics | 4 | **16** |
+| `dmc_humanoid_state` | 67 | 3 | `[0:21]` joint angles \| `[21:37]` spatial \| `[37:67]` velocities | 4 | **64** |
+| `antmaze_*` | 31 | 3 | `[0:13]` pose \| `[13:27]` velocity \| `[27:31]` goal info | 4 | **64** |
+| `ant_v5` | 27 | 2 | `[0:13]` pose \| `[13:27]` velocity | 4 | **16** |
+
+Override `skill_dim` via CLI: `"agent.training_params.<domain>.skill_dim=<value>"`
+
+| `skill_dim` | 2-channel envs | 3-channel envs |
+|---|---|---|
+| 2 | 4 skills | 8 skills |
+| 3 | 9 skills | 27 skills |
+| 4 | 16 skills | 64 skills |
+| 5 | 25 skills | 125 skills |
+
+### Full hyperparameter table
+
+| Parameter | Humanoid | Quadruped | Hopper | Cheetah | AntMaze | Ant-v5 |
+|---|---|---|---|---|---|---|
+| `skill_dim` | 4 | 4 | 4 | 4 | 4 | 4 |
+| `num_channels` | 3 | 2 | 2 | 2 | 3 | 2 |
+| `total_skills` | 64 | 16 | 16 | 16 | 64 | 16 |
+| `update_skill_every_step` | 200 | 200 | 200 | 200 | 200 | 200 |
+| `init_temperature` | 0.1 | 0.1 | 0.1 | 0.1 | 0.1 | 0.1 |
+| `step_count_threshold` | 20 | 20 | 20 | 20 | 50 | 20 |
+| `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt |
+| `nstep` | 1 | 1 | 1 | 1 | 1 | 1 |
 
 Snapshots are saved to:
 ```
