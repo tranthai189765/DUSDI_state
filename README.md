@@ -240,17 +240,38 @@ Override `skill_dim` via CLI: `"agent.training_params.<domain>.skill_dim=<value>
 | `critic_type` | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt | mask_unwt |
 | `nstep` | 1 | 1 | 1 | 1 | 1 | 1 |
 
-Snapshots are saved to:
+Each training run creates an isolated directory under `exp_local/` (timestamped by Hydra):
+
 ```
-./models/<obs_type>/<domain>/<experiment>/<seed>/
+exp_local/<date>/<time>_<domain>_<agent>_seed<seed>_<exp_nm>/
+    snapshots/
+        actor_<frame>.pt
+        critic_<frame>.pt
+        discriminator_<frame>.pt
+        cfg_<frame>.yaml
+    train.csv
+    eval.csv
 ```
 
-Each checkpoint saves:
-- `actor_<frame>.pt` — actor weights
-- `critic_<frame>.pt` — critic weights
-- `discriminator_<frame>.pt` — DIAYN discriminator weights
-- `snapshot_<frame>.pt` — full agent object (for inference)
-- `cfg_<frame>.yaml` — full config (architecture and hyperparameters)
+Re-running with the same config always creates a new timestamped directory — **no overrides**.
+
+Use `exp_nm` to label different configurations so they are easy to distinguish:
+
+```sh
+# Default run
+python pretrain.py domain=ant_v5 use_wandb=false use_tb=true
+# → exp_local/.../120000_ant_v5_dusdi_diayn_seed2_/snapshots/
+
+# Custom label
+python pretrain.py domain=ant_v5 exp_nm=skill2 \
+  "agent.training_params.ant_v5.skill_dim=2" use_wandb=false use_tb=true
+# → exp_local/.../120500_ant_v5_dusdi_diayn_seed2_skill2/snapshots/
+```
+
+To find the latest checkpoint for a domain:
+```sh
+ls -lt exp_local/**/*ant_v5*/snapshots/ | head -20
+```
 
 ---
 

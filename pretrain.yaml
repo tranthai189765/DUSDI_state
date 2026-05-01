@@ -39,19 +39,14 @@ domain: particle # toy # igibson # moma2d # particle
 
 exp_nm: ""
 
-exp_group:
-  ${domain}
-  ${agent.name}
-  ${exp_nm}
-
-
-experiment:
-  seed:${seed}
-  ${exp_group}
+experiment: ${domain}_${agent.name}_seed${seed}_${exp_nm}
 
 # snapshot
+# Each run saves to its own timestamped hydra dir → never overrides previous runs.
+# Use exp_nm to label different configs, e.g. exp_nm=skill2 or exp_nm=run1.
+# Find checkpoints under: exp_local/<date>/<time>_<experiment>/snapshots/
 snapshots: [100000, 500000, 1000000, 2000000, 3000000, 4000000]
-snapshot_dir: ../../../models/${obs_type}/${domain}/${experiment}/${seed}
+snapshot_dir: snapshots
 
 
 hydra:
