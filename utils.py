@@ -326,6 +326,9 @@ def update_partition_config(cfg, obs_dim=None, action_dim=None):
     if cfg.domain in agent.partition_utils._ALL_STATE_ENVS:
         agent.partition_utils.DMC_OBS_DIM = obs_dim
         agent.partition_utils.DMC_ACTION_DIM = action_dim
+    elif cfg.domain in agent.partition_utils._ANT_V5_ENVS:
+        agent.partition_utils.ANT_V5_OBS_DIM = obs_dim
+        agent.partition_utils.ANT_V5_ACTION_DIM = action_dim
 
 def make_agent(obs_type, obs_spec, action_spec, num_expl_steps, parent_cfg, cfg):
     cfg.obs_type = obs_type
