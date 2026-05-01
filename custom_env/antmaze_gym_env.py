@@ -5,10 +5,10 @@ import numpy as np
 
 _TASK_MAP = {
     'antmaze_umaze':           'AntMaze_UMaze-v5',
-    'antmaze_medium_play':     'AntMaze_Medium_Play-v5',
-    'antmaze_medium_diverse':  'AntMaze_Medium_Diverse-v5',
-    'antmaze_large_play':      'AntMaze_Large_Play-v5',
-    'antmaze_large_diverse':   'AntMaze_Large_Diverse-v5',
+    'antmaze_medium_play':     'AntMaze_BigMaze_DGR-v5',
+    'antmaze_medium_diverse':  'AntMaze_BigMaze_DG-v5',
+    'antmaze_large_play':      'AntMaze_HardestMaze_DGR-v5',
+    'antmaze_large_diverse':   'AntMaze_HardestMaze_DG-v5',
 }
 
 
