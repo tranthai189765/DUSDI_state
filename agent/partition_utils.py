@@ -10,6 +10,8 @@ DMC_OBS_DIM = None
 DMC_ACTION_DIM = None
 ANT_V5_OBS_DIM = None   # set dynamically from actual env obs spec
 ANT_V5_ACTION_DIM = None
+# Ant-v5 obs layout: z(1)+quat(4)+joints(8) = 13 (pose) | body_vel(6)+joint_vel(8) = 14 (velocity)
+_ANT_V5_PROPRIO_END = 13  # split point: channel 0 = [0:13], channel 1 = [13:obs_dim]
 
 _ALL_STATE_ENVS = [
     'dmc_humanoid_state', 'dmc_quadruped_state',
@@ -63,7 +65,8 @@ def get_env_factorization(domain, skill_dim, skill_channel):
 		obs_partition = [DMC_OBS_DIM]
 		action_partition = [DMC_ACTION_DIM]
 	elif domain in _ANT_V5_ENVS:
-		obs_partition = [ANT_V5_OBS_DIM]   # full obs as single chunk
+		# channel 0: pose [0:13], channel 1: velocity [13:obs_dim]
+		obs_partition = [_ANT_V5_PROPRIO_END, ANT_V5_OBS_DIM - _ANT_V5_PROPRIO_END]
 		action_partition = [ANT_V5_ACTION_DIM]
 	else:
 		# For other domain, this is not implemented yet
@@ -104,9 +107,9 @@ def get_domain_stats(domain, env_config):
 		diayn_dim = DMC_OBS_DIM
 		state_partition_points = [0, DMC_OBS_DIM]
 	elif domain in _ANT_V5_ENVS:
-		# 1 channel over full obs (consistent with other DUSDi state envs)
+		# 2 channels: pose [0:13] | velocity [13:obs_dim]
 		diayn_dim = ANT_V5_OBS_DIM
-		state_partition_points = [0, ANT_V5_OBS_DIM]
+		state_partition_points = [0, _ANT_V5_PROPRIO_END, ANT_V5_OBS_DIM]
 	else:
 		raise NotImplementedError
 
