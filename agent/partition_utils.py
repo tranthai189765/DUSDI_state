@@ -12,8 +12,10 @@ ANT_V5_OBS_DIM = None   # set dynamically from actual env obs spec
 ANT_V5_ACTION_DIM = None
 # Ant-v5 obs layout: z(1)+quat(4)+joints(8) = 13 (pose) | body_vel(6)+joint_vel(8) = 14 (velocity)
 _ANT_V5_PROPRIO_END = 13  # split point: channel 0 = [0:13], channel 1 = [13:obs_dim]
-# AntMaze obs layout: proprioceptive(27) | achieved_goal(2) + desired_goal(2) = 31
-_ANTMAZE_PROPRIO_END = 27  # split point: channel 0 = [0:27], channel 1 = [27:obs_dim]
+# AntMaze obs layout: pose(13) | velocity(14) | achieved_goal(2) | desired_goal(2) = 31
+# Only the first 27 dims (proprioceptive) are used for skill learning — goals are ignored.
+# The pose/velocity split reuses _ANT_V5_PROPRIO_END = 13.
+_ANTMAZE_OBS_END = 27  # end of proprioceptive obs; dims [27:31] (goals) are discarded
 
 _ALL_STATE_ENVS = [
     'dmc_humanoid_state', 'dmc_quadruped_state',
@@ -64,8 +66,9 @@ def get_env_factorization(domain, skill_dim, skill_channel):
 		obs_partition = [96]
 		action_partition = [17]
 	elif domain in _ANTMAZE_ENVS:
-		# channel 0: body state [0:27], channel 1: spatial goal [27:obs_dim]
-		obs_partition = [_ANTMAZE_PROPRIO_END, DMC_OBS_DIM - _ANTMAZE_PROPRIO_END]
+		# obs_partition must sum to full obs_dim (31). Split as [body(27) | goal(4)].
+		# The discriminator uses observation_filter to strip goals before skill prediction.
+		obs_partition = [_ANTMAZE_OBS_END, DMC_OBS_DIM - _ANTMAZE_OBS_END]
 		action_partition = [DMC_ACTION_DIM]
 	elif domain in _ALL_STATE_ENVS:
 		obs_partition = [DMC_OBS_DIM]
@@ -110,9 +113,9 @@ def get_domain_stats(domain, env_config):
 		diayn_dim = N * 1
 		state_partition_points = list(range(0, diayn_dim+1))
 	elif domain in _ANTMAZE_ENVS:
-		# 2 channels: body state [0:27] | spatial goal [27:obs_dim]
-		diayn_dim = DMC_OBS_DIM
-		state_partition_points = [0, _ANTMAZE_PROPRIO_END, DMC_OBS_DIM]
+		# 2 channels: pose [0:13] | velocity [13:27]; goal dims [27:31] discarded
+		diayn_dim = _ANTMAZE_OBS_END  # 27, not 31
+		state_partition_points = [0, _ANT_V5_PROPRIO_END, _ANTMAZE_OBS_END]
 	elif domain in _ALL_STATE_ENVS:
 		diayn_dim = DMC_OBS_DIM
 		state_partition_points = [0, DMC_OBS_DIM]
@@ -154,6 +157,8 @@ def observation_filter(obs, domain, env_config):
 	elif domain == "particle":
 		idx = np.array(range(env_config.particle.N))
 		return obs[:, idx]
+	elif domain in _ANTMAZE_ENVS:
+		return obs[:, :_ANTMAZE_OBS_END]  # discard goal dims [27:31]
 	elif domain in _ALL_STATE_ENVS:
 		return obs
 	elif domain in _ANT_V5_ENVS:
