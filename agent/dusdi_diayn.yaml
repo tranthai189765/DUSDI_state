@@ -142,7 +142,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 50
-        skill_dim: 2
+        skill_dim: 4
         nstep: 1
     antmaze_medium_play:
         sac: true
@@ -151,7 +151,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 50
-        skill_dim: 2
+        skill_dim: 4
         nstep: 1
     antmaze_medium_diverse:
         sac: true
@@ -160,7 +160,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 50
-        skill_dim: 2
+        skill_dim: 4
         nstep: 1
     antmaze_large_play:
         sac: true
@@ -169,7 +169,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 50
-        skill_dim: 2
+        skill_dim: 4
         nstep: 1
     antmaze_large_diverse:
         sac: true
@@ -178,7 +178,7 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 50
-        skill_dim: 2
+        skill_dim: 4
         nstep: 1
     ant_v5:
         sac: true
