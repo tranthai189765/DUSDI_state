@@ -25,11 +25,29 @@ from utils import make_agent
 from agent.partition_utils import get_env_obs_act_dim
 
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import BaseCallback, CallbackList
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.logger import configure as sb3_configure
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 import wandb
+
+
+class EpisodeCountCallback(BaseCallback):
+    """Record cumulative episode count so the CSV can be plotted with episodes on the x-axis."""
+
+    def __init__(self):
+        super().__init__()
+        self._episode_count = 0
+
+    def _on_step(self) -> bool:
+        for info in self.locals.get('infos', []):
+            if 'episode' in info:
+                self._episode_count += 1
+        return True
+
+    def _on_rollout_end(self) -> None:
+        self.logger.record('time/episodes', self._episode_count)
 
 
 def get_causal_matrix(domain, ds_task):
@@ -212,7 +230,9 @@ class Workspace:
                         n_steps=self.cfg.n_steps, device=self.device)
 
         model.set_logger(sb3_logger)
-        model.learn(total_timesteps=self.cfg.total_timesteps, callback=callback)
+        ep_cb = EpisodeCountCallback()
+        full_callback = CallbackList([callback, ep_cb]) if callback is not None else ep_cb
+        model.learn(total_timesteps=self.cfg.total_timesteps, callback=full_callback)
         model.save("ppo_weight")
         if run is not None:
             run.finish()
