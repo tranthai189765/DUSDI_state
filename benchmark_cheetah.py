@@ -218,7 +218,8 @@ def main():
           f'(skill_dim={args.skill_dim}^skill_channel={args.skill_channel}), '
           f'{args.n_episodes} episode(s) each\n')
 
-    skill_x      = {}
+    skill_x      = {}   # skill_tuple -> concatenated x array (for plotting)
+    skill_x_eps  = {}   # skill_tuple -> list of per-episode x arrays (for CSV)
     skill_embed  = {}
     skill_returns = {}
 
@@ -232,8 +233,9 @@ def main():
             ep_x_all.append(x_seq)
             ep_rets.append(ret)
 
-        skill_x[skill_tuple]      = np.concatenate(ep_x_all)
-        skill_embed[skill_tuple]  = np.mean(np.concatenate(ep_obs_all, axis=0), axis=0)
+        skill_x[skill_tuple]     = np.concatenate(ep_x_all)
+        skill_x_eps[skill_tuple] = ep_x_all
+        skill_embed[skill_tuple] = np.mean(np.concatenate(ep_obs_all, axis=0), axis=0)
         skill_returns[skill_tuple] = ep_rets
 
         x_arr = skill_x[skill_tuple]
@@ -253,13 +255,15 @@ def main():
         embeddings, all_skills, out_dir / 'cosine_distance_matrix.png'
     )
 
-    csv_path = out_dir / 'returns.csv'
+    # ── X-location CSV ───────────────────────────────────────────────────────
+    csv_path = out_dir / 'x_locations_dmc_cheetah_state.csv'
     with open(csv_path, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['skill_tuple', 'episode', 'return'])
-        for skill_tuple, rets in skill_returns.items():
-            for ep, ret in enumerate(rets):
-                writer.writerow([str(skill_tuple), ep, f'{ret:.4f}'])
+        writer.writerow(['skill_tuple', 'episode', 'step', 'x'])
+        for skill_tuple, eps in skill_x_eps.items():
+            for ep_idx, x_seq in enumerate(eps):
+                for step, x in enumerate(x_seq):
+                    writer.writerow([str(skill_tuple), ep_idx, step, f'{x:.4f}'])
     print(f'Saved: {csv_path}')
 
     all_returns = [r for rs in skill_returns.values() for r in rs]

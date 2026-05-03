@@ -208,7 +208,8 @@ def main():
           f'(skill_dim={args.skill_dim}^skill_channel={args.skill_channel}), '
           f'{args.n_episodes} episodes each\n')
 
-    skill_xy      = {}   # skill_tuple -> (T_total, 2) xy array
+    skill_xy      = {}   # skill_tuple -> (T_total, 2) xy array  (for plotting)
+    skill_xy_eps  = {}   # skill_tuple -> list of per-episode (T_ep, 2) arrays (for CSV)
     skill_embed   = {}   # skill_tuple -> mean obs vector (obs_dim,)
     skill_returns = {}   # skill_tuple -> list of episode returns
 
@@ -223,6 +224,7 @@ def main():
             ep_rets.append(ret)
 
         skill_xy[skill_tuple]      = np.concatenate(ep_xy_all, axis=0)
+        skill_xy_eps[skill_tuple]  = ep_xy_all
         skill_embed[skill_tuple]   = np.mean(np.concatenate(ep_obs_all, axis=0), axis=0)
         skill_returns[skill_tuple] = ep_rets
 
@@ -243,14 +245,15 @@ def main():
         embeddings, all_skills, out_dir / 'cosine_distance_matrix.png'
     )
 
-    # ── Returns CSV ──────────────────────────────────────────────────────────
-    csv_path = out_dir / 'returns.csv'
+    # ── Trajectories CSV ─────────────────────────────────────────────────────
+    csv_path = out_dir / 'trajectories_ant_v5.csv'
     with open(csv_path, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['skill_tuple', 'episode', 'return'])
-        for skill_tuple, rets in skill_returns.items():
-            for ep, ret in enumerate(rets):
-                writer.writerow([str(skill_tuple), ep, f'{ret:.4f}'])
+        writer.writerow(['skill_tuple', 'episode', 'step', 'x', 'y'])
+        for skill_tuple, eps in skill_xy_eps.items():
+            for ep_idx, xy_seq in enumerate(eps):
+                for step, (x, y) in enumerate(xy_seq):
+                    writer.writerow([str(skill_tuple), ep_idx, step, f'{x:.4f}', f'{y:.4f}'])
     print(f'Saved: {csv_path}')
 
     # ── Summary ──────────────────────────────────────────────────────────────
