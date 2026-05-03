@@ -26,9 +26,9 @@ from agent.partition_utils import get_env_obs_act_dim
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.logger import configure as sb3_configure
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
-from wandb.integration.sb3 import WandbCallback
 import wandb
 
 
@@ -52,9 +52,16 @@ def get_causal_matrix(domain, ds_task):
 
 
 # If we want to have additional access to training
-class CustomCallback(WandbCallback):
-    def on_rollout_end(self) -> None:
-        return super().on_rollout_end()
+class CustomCallback:
+    pass
+
+try:
+    from wandb.integration.sb3 import WandbCallback
+    class CustomCallback(WandbCallback):
+        def on_rollout_end(self) -> None:
+            return super().on_rollout_end()
+except ImportError:
+    pass
 
 
 class Workspace:
@@ -139,23 +146,38 @@ class Workspace:
         Train a PPO agent with the given environment
         """
 
-        config = {
-            "policy_type": "MlpPolicy",
-            "total_timesteps": self.cfg.total_timesteps,
-            "env_name": self.cfg.domain,
-        }
         project_name = self.cfg.domain + "_downstream_" + self.cfg.ds_task
         if self.cfg.factored:
             project_name += "_factored"
 
-        run = wandb.init(
-            project=project_name,
-            config=config,
-            group=self.cfg.experiment, name=self.cfg.experiment,
-            sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
-            monitor_gym=False,  # auto-upload the videos of agents playing the game
-            save_code=False,  # optional
-        )
+        # W&B is optional — only initialise when use_wandb=true
+        run = None
+        callback = None
+        log_dir = "."
+        if self.cfg.use_wandb:
+            run = wandb.init(
+                project=project_name,
+                config={"policy_type": "MlpPolicy",
+                        "total_timesteps": self.cfg.total_timesteps,
+                        "env_name": self.cfg.domain},
+                group=self.cfg.experiment, name=self.cfg.experiment,
+                sync_tensorboard=True,
+                monitor_gym=False,
+                save_code=False,
+            )
+            log_dir = f"runs/{run.id}"
+            callback = CustomCallback(
+                gradient_save_freq=100,
+                model_save_path=f"models/{run.id}",
+                verbose=2,
+            )
+
+        # SB3 logger: always write CSV; add tensorboard only when wandb is active
+        log_formats = ["stdout", "csv"]
+        if self.cfg.use_wandb:
+            log_formats.append("tensorboard")
+        sb3_logger = sb3_configure(log_dir, log_formats)
+        # CSV is written to <log_dir>/progress.csv
 
         if self.cfg.factored:
             from stable_baselines3 import FPPO # checkout https://github.com/JiahengHu/sb3-CausalMoMa
@@ -166,26 +188,21 @@ class Workspace:
             kwargs["target_kl"] = 0.15
             kwargs["normalize_advantage"] = True
             kwargs["gae_lambda"] = 0.95
-
             kwargs["sep_vnet"] = False
             kwargs["value_loss_normalization"] = False
             kwargs["value_grad_rescale"] = False
             kwargs["approx_var_gamma"] = False
             model = FPPO("MlpPolicy", self.train_env, reward_channels_dim, causal_matrix, verbose=1,
-                         n_steps=self.cfg.n_steps, tensorboard_log=f"runs/{run.id}", device=self.device, **kwargs, )
+                         n_steps=self.cfg.n_steps, device=self.device, **kwargs)
         else:
-            model = PPO("MlpPolicy", self.train_env, verbose=1, n_steps=self.cfg.n_steps,
-                        tensorboard_log=f"runs/{run.id}", device=self.device)
-        model.learn(
-            total_timesteps=self.cfg.total_timesteps,
-            callback=CustomCallback(
-                gradient_save_freq=100,
-                model_save_path=f"models/{run.id}",
-                verbose=2,
-            )
-        )
+            model = PPO("MlpPolicy", self.train_env, verbose=1,
+                        n_steps=self.cfg.n_steps, device=self.device)
+
+        model.set_logger(sb3_logger)
+        model.learn(total_timesteps=self.cfg.total_timesteps, callback=callback)
         model.save("ppo_weight")
-        run.finish()
+        if run is not None:
+            run.finish()
 
     def test(self):
         """
