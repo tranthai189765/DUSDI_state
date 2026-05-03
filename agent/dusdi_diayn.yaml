@@ -187,5 +187,5 @@ training_params:
         use_spectral_norm: false
         critic_type: mask_unwt
         step_count_threshold: 20
-        skill_dim: 4
+        skill_dim: 6  # checkpoint trained with skill_dim=6, skill_channel=2 → 36 total skills
         nstep: 1
