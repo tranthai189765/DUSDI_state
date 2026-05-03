@@ -259,7 +259,7 @@ def make_ds_envs(cfg, actor, device):
         return make_igibson_downstream_env
 
     elif cfg.domain in ("dmc_humanoid_state", "dmc_quadruped_state", "dmc_hopper_state", "dmc_cheetah_state"):
-        low_level_step = 50
+        low_level_step = getattr(cfg, 'low_level_steps', 50)
 
         def make_dmc_ds_env(vis=False):
             from custom_env.dmc_gym_env import DMCGymEnv

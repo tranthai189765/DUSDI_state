@@ -205,7 +205,7 @@ class Workspace:
 
         # SB3 logger: always write CSV; add tensorboard only when wandb is active
         log_formats = ["stdout", "csv"]
-        if self.cfg.use_wandb:
+        if self.cfg.use_tb or self.cfg.use_wandb:
             log_formats.append("tensorboard")
         sb3_logger = sb3_configure(log_dir, log_formats)
         # CSV is written to <log_dir>/progress.csv
