@@ -73,15 +73,24 @@ class Workspace:
         self.device = torch.device("cuda:{}".format(cfg.cuda_id))
         cfg.agent.nstep = 1  # just a place holder
 
-        # Create a temp env to get real obs/act dims.
-        # get_env_obs_act_dim() depends on DMC_OBS_DIM global which is not yet set
-        # at this point (set inside make_agent → update_partition_config).
+        # For cross-domain HRL (e.g. Ant-v5 skills → AntMaze), the agent architecture
+        # must match the pretrain domain (low_domain), not the HRL target domain.
+        # We temporarily patch cfg.domain so make_agent builds the right network shape.
         from env_helper import get_single_gym_env
+        from omegaconf import open_dict
+
+        low_domain = getattr(cfg, 'low_domain', '') or ''
+        orig_domain = cfg.domain  # save before any patching
+
+        if low_domain:
+            with open_dict(cfg):
+                cfg.domain = low_domain
+
         _tmp_env = get_single_gym_env(cfg)
         low_obs_spec = np.zeros(_tmp_env.observation_space.shape)
         low_act_spec = np.zeros(_tmp_env.action_space.shape)
 
-        # create agent
+        # create agent with pretrain-domain architecture
         self.agent = make_agent(cfg.obs_type,
                                 low_obs_spec,
                                 low_act_spec,
@@ -91,10 +100,14 @@ class Workspace:
         self.agent.init_critic = False
 
         if self.cfg.agent.name in ["dusdi_diayn"]:
-            from omegaconf import OmegaConf, open_dict
             with open_dict(cfg):
                 cfg.agent.skill_channel = self.agent.diayn_skill_channel
                 cfg.agent.diayn_skill_channel = self.agent.diayn_skill_channel
+
+        # Restore HRL target domain before creating environments
+        if low_domain:
+            with open_dict(cfg):
+                cfg.domain = orig_domain
 
         self.agent = self.load_agent(self.agent)
 

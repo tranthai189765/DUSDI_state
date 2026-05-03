@@ -37,6 +37,20 @@ low_path:
 # Example: low_snapshot_dir="/workspace/.../exp_local/2026.05.01/161417_.../snapshots"
 low_snapshot_dir: ""
 
+# Cross-domain HRL: pretrain domain whose actor architecture we are loading.
+# When set, agent is initialised with low_domain obs/act dims so the checkpoint
+# loads correctly, then cfg.domain is restored for HRL env creation.
+# Example: low_domain=ant_v5 (training HRL on antmaze with Ant-v5 skills)
+low_domain: ""
+
+# How many env steps the low-level actor executes per high-level skill selection.
+low_level_steps: 16
+
+# Obs dim the loaded low-level actor was trained with.
+# Used by HierarchicalAntMazeWithAntV5Env to zero-pad AntMaze proprio → actor input.
+# 105 = Ant-v5 default (include_cfrc_ext_in_observation=True, 27 proprio + 78 cfrc).
+low_actor_obs_dim: 105
+
 # These are used to help with agent initialization
 use_tb: false
 use_wandb: false

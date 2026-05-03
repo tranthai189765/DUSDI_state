@@ -10,11 +10,14 @@ DMC_OBS_DIM = None
 DMC_ACTION_DIM = None
 ANT_V5_OBS_DIM = None   # set dynamically from actual env obs spec
 ANT_V5_ACTION_DIM = None
-# Ant-v5 obs layout: z(1)+quat(4)+joints(8) = 13 (pose) | body_vel(6)+joint_vel(8) = 14 (velocity)
+# Ant-v5 obs layout: z(1)+quat(4)+joints(8) = 13 (pose) | body_vel(6)+joint_vel(8)+cfrc(78) = 92
 _ANT_V5_PROPRIO_END = 13  # split point: channel 0 = [0:13], channel 1 = [13:obs_dim]
-# AntMaze obs layout: pose(13) | velocity(14) | achieved_goal(2) + desired_goal(2) = 31
-# 3 channels: [0:13] pose | [13:27] velocity | [27:31] goal info
-_ANTMAZE_BODY_END = 27  # boundary between velocity and goal dims
+# AntMaze flat obs layout (gymnasium-robotics default, cfrc ON):
+#   observation(105) = [0:13] pose | [13:105] velocity+cfrc   (identical to Ant-v5)
+#   achieved_goal(2) = [105:107]
+#   desired_goal(2)  = [107:109]
+# 2 channels mirror Ant-v5 — goal [105:109] is high-level obs only, not in skill partition.
+_ANTMAZE_OBS_END = 105  # end of the proprio/cfrc block; goal info starts here
 
 # DMC per-env split points (verified from dm_control obs structure)
 # cheetah (17): position(8) | velocity(9)
@@ -76,8 +79,9 @@ def get_env_factorization(domain, skill_dim, skill_channel):
 		obs_partition = [96]
 		action_partition = [17]
 	elif domain in _ANTMAZE_ENVS:
-		# 3 channels: pose [0:13] | velocity [13:27] | goal info [27:31]
-		obs_partition = [_ANT_V5_PROPRIO_END, _ANTMAZE_BODY_END - _ANT_V5_PROPRIO_END, DMC_OBS_DIM - _ANTMAZE_BODY_END]
+		# 2 channels matching Ant-v5: pose [0:13] | velocity+cfrc [13:105]
+		# Goal info [105:109] lives in the high-level obs only, not partitioned into skills.
+		obs_partition = [_ANT_V5_PROPRIO_END, _ANTMAZE_OBS_END - _ANT_V5_PROPRIO_END]
 		action_partition = [DMC_ACTION_DIM]
 	elif domain == 'dmc_cheetah_state':
 		# 2 channels: joint positions [0:8] | velocities [8:17]
@@ -138,9 +142,10 @@ def get_domain_stats(domain, env_config):
 		diayn_dim = N * 1
 		state_partition_points = list(range(0, diayn_dim+1))
 	elif domain in _ANTMAZE_ENVS:
-		# 3 channels: pose [0:13] | velocity [13:27] | goal info [27:31]
-		diayn_dim = DMC_OBS_DIM  # 31
-		state_partition_points = [0, _ANT_V5_PROPRIO_END, _ANTMAZE_BODY_END, DMC_OBS_DIM]
+		# 2 channels matching Ant-v5: pose [0:13] | velocity+cfrc [13:105]
+		# Discriminator only sees the proprio/cfrc block; goal [105:109] is not part of skill.
+		diayn_dim = _ANTMAZE_OBS_END  # 105
+		state_partition_points = [0, _ANT_V5_PROPRIO_END, _ANTMAZE_OBS_END]
 	elif domain == 'dmc_cheetah_state':
 		# 2 channels: positions [0:8] | velocities [8:17]
 		diayn_dim = DMC_OBS_DIM
@@ -199,7 +204,7 @@ def observation_filter(obs, domain, env_config):
 		idx = np.array(range(env_config.particle.N))
 		return obs[:, idx]
 	elif domain in _ANTMAZE_ENVS:
-		return obs  # full 31-dim obs across all 3 channels
+		return obs[:, :_ANTMAZE_OBS_END]  # proprio+cfrc block [0:105], exclude goal [105:109]
 	elif domain in _ALL_STATE_ENVS:
 		return obs
 	elif domain in _ANT_V5_ENVS:

@@ -13,6 +13,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from typing import Callable
 from custom_env.moma_2d_downstream_env import MoMa2DGymDSEnv
 from custom_env.hierarchical_env_wrapper import HierarchicalDiscreteEnv, HierarchicalContinuousEnv, HierarchicalDiaynEnv
+from custom_env.hierarchical_env_wrapper import HierarchicalAntMazeWithAntV5Env
 from custom_env.hierarchical_env_wrapper import FlatEnvWrapper
 import torch
 
@@ -169,8 +170,15 @@ def make_eval_envs(cfg):
 # Decide how to wrap the DS environment based on the type of algorithm
 def wrap_ds_env(env, cfg, actor, device, low_level_step, vis=False):
     if cfg.agent.name == "dusdi_diayn":
-        env = HierarchicalDiscreteEnv(env, cfg.agent.skill_channel, cfg.agent.skill_dim, low_level_step,
-                                      device, actor, vis)
+        from env.env_list import _ANTMAZE_ENVS
+        if cfg.domain in _ANTMAZE_ENVS:
+            # Cross-domain HRL: Ant-v5 actor → AntMaze env; must pad obs to actor's input format
+            ant_v5_obs_dim = getattr(cfg, 'low_actor_obs_dim', 105)
+            env = HierarchicalAntMazeWithAntV5Env(env, cfg.agent.skill_channel, cfg.agent.skill_dim,
+                                                  low_level_step, device, ant_v5_obs_dim, actor, vis)
+        else:
+            env = HierarchicalDiscreteEnv(env, cfg.agent.skill_channel, cfg.agent.skill_dim, low_level_step,
+                                          device, actor, vis)
     elif cfg.agent.name == "diayn":
         env = HierarchicalDiaynEnv(env, cfg.agent.skill_dim, low_level_step,
                                    device, actor, vis)
@@ -263,6 +271,17 @@ def make_ds_envs(cfg, actor, device):
             return env
 
         return make_dmc_ds_env
+
+    elif cfg.domain in _ANTMAZE_ENVS:
+        # Cross-domain HRL: Ant-v5 low-level skills → AntMaze navigation
+        low_level_step = getattr(cfg, 'low_level_steps', 16)
+
+        def make_antmaze_ds_env(vis=False):
+            env = get_single_gym_env(cfg)
+            env = wrap_ds_env(env, cfg, actor, device, low_level_step, vis)
+            return env
+
+        return make_antmaze_ds_env
 
     else:
         raise NotImplementedError(f"Downstream task not implemented for domain: {cfg.domain}")

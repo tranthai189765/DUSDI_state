@@ -15,8 +15,12 @@ _TASK_MAP = {
 class AntMazeGymEnv(gym.Env):
     """Gym wrapper for gymnasium-robotics AntMaze environments.
 
-    Observation order matches TIME's GymnasiumWrapper:
-        observation (27) + achieved_goal (2) + desired_goal (2) = 31 dims.
+    Flat obs layout (gymnasium-robotics default, cfrc_ext ON):
+        observation  (105) — same format as Ant-v5: [0:13] pose | [13:105] velocity+cfrc
+        achieved_goal  (2) — current (x, y) position
+        desired_goal   (2) — target  (x, y) position
+        total          109 dims
+
     Action space is already [-1, 1] in AntMaze-v5.
     Returns old gym API (4-tuple step, obs-only reset) for Gym2DMWrapper.
     """
@@ -77,6 +81,9 @@ class AntMazeGymEnv(gym.Env):
             info = {}
         info['terminated'] = terminated
         return self._flatten_obs(obs), float(reward), done, info
+
+    def get_additional_states(self):
+        return np.array([], dtype=np.float32)
 
     def seed(self, seed=None):
         pass

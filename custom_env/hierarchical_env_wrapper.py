@@ -181,6 +181,54 @@ class HierarchicalDiaynEnv(HierarchicalDiscreteEnv):
 		return self.get_full_state(observation), reward, done, info
 
 
+class HierarchicalAntMazeWithAntV5Env(HierarchicalDiscreteEnv):
+	"""
+	HRL wrapper for AntMaze downstream using a low-level actor pretrained on Ant-v5.
+
+	AntMaze flat obs: [observation(105) | achieved_goal(2) | desired_goal(2)] = 109 dims.
+	The first ant_v5_obs_dim (105) dims are identical in format to Ant-v5 obs (cfrc ON),
+	so no padding is needed — we simply slice obs[:ant_v5_obs_dim] for the actor.
+
+	High-level PPO sees the full 109-dim goal-conditioned AntMaze obs.
+	Low-level actor receives obs[:ant_v5_obs_dim] + skill_vec (same format as pretraining).
+	"""
+
+	def __init__(self, env, skill_channel, skill_dim, low_level_steps, device,
+	             ant_v5_obs_dim, low_actor=None, vis=False):
+		super().__init__(env, skill_channel, skill_dim, low_level_steps, device, low_actor, vis)
+		self.ant_v5_obs_dim = ant_v5_obs_dim
+
+	def step(self, meta_action):
+		reward = 0
+
+		for _ in range(self.low_level_steps):
+			if self.low_level_actor is None:
+				action = self._env.action_space.sample()
+			else:
+				with torch.no_grad():
+					# Slice the ant_v5_obs_dim prefix: identical format to Ant-v5 training obs
+					actor_obs = self.last_observation[:self.ant_v5_obs_dim].astype(np.float32)
+					obs_t = torch.as_tensor(actor_obs, device=self.device, dtype=torch.float32)
+
+					skill = np.zeros((self.skill_channel, self.skill_dim), dtype=np.float32)
+					skill[range(self.skill_channel), meta_action] = 1.0
+					skill_t = torch.as_tensor(skill, device=self.device).flatten()
+
+					inpt = torch.cat([obs_t, skill_t], dim=-1)
+					dist = self.low_level_actor(inpt, 0.2)
+					action = dist.mean.cpu().numpy()
+
+			observation, r, done, info = self._env.step(action)
+			if self.vis:
+				self.render("human")
+			reward += r
+			if done:
+				break
+			self.last_observation = observation
+
+		return self.get_full_state(observation), reward, done, info
+
+
 class FlatEnvWrapper(gym.Env):
 	"""
 	This is to wrap env for exploration methods
