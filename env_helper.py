@@ -250,8 +250,21 @@ def make_ds_envs(cfg, actor, device):
 
         return make_igibson_downstream_env
 
+    elif cfg.domain in ("dmc_humanoid_state", "dmc_quadruped_state", "dmc_hopper_state", "dmc_cheetah_state"):
+        low_level_step = 50
+
+        def make_dmc_ds_env(vis=False):
+            from custom_env.dmc_gym_env import DMCGymEnv
+            env = DMCGymEnv(cfg.domain,
+                            max_episode_steps=cfg.env[cfg.domain].episode_length,
+                            seed=cfg.seed)
+            env = wrap_ds_env(env, cfg, actor, device, low_level_step, vis)
+            return env
+
+        return make_dmc_ds_env
+
     else:
-        assert NotImplementedError
+        raise NotImplementedError(f"Downstream task not implemented for domain: {cfg.domain}")
 
 
 if __name__ == "__main__":

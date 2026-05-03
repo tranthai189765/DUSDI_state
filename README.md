@@ -277,9 +277,72 @@ ls -lt exp_local/**/*ant_v5*/snapshots/ | head -20
 
 ## Downstream Hierarchical Learning
 
+The HRL setup uses a **two-level hierarchy**:
+- **Low-level** (frozen): pretrained skill actor from `pretrain.py`
+- **High-level** (PPO): selects which skill to activate every `low_level_step=50` steps
+
+### Loading checkpoints
+
+Use `low_snapshot_dir` to point directly to the `snapshots/` folder from any `exp_local/` run:
+
+```sh
+python train.py domain=<env> ds_task=<task> \
+  low_snapshot_dir="<path_to_exp_local_run>/snapshots" \
+  snapshot_ts=<frame>
+```
+
+Find available checkpoints:
+```sh
+ls exp_local/2026.05.01/161417_dmc_cheetah_state_dusdi_diayn_seed2_/snapshots/
+# actor_100000.pt  critic_100000.pt  discriminator_100000.pt  cfg_100000.yaml
+```
+
+### DMC Cheetah — `cheetah_run`
+
+```sh
+python train.py domain=dmc_cheetah_state ds_task=cheetah_run \
+  low_snapshot_dir="/workspace/DUSDI_state/exp_local/2026.05.01/161417_dmc_cheetah_state_dusdi_diayn_seed2_/snapshots" \
+  snapshot_ts=100000 \
+  use_wandb=false use_tb=true
+```
+
+### DMC Hopper — `hopper_hop`
+
+```sh
+python train.py domain=dmc_hopper_state ds_task=hopper_hop \
+  low_snapshot_dir="/workspace/DUSDI_state/exp_local/2026.05.01/161325_dmc_hopper_state_dusdi_diayn_seed2_/snapshots" \
+  snapshot_ts=100000 \
+  use_wandb=false use_tb=true
+```
+
+### DMC Quadruped / Humanoid
+
+```sh
+python train.py domain=dmc_quadruped_state ds_task=quadruped_run \
+  low_snapshot_dir="<path>/snapshots" snapshot_ts=<frame> \
+  use_wandb=false use_tb=true
+
+python train.py domain=dmc_humanoid_state ds_task=humanoid_run \
+  low_snapshot_dir="<path>/snapshots" snapshot_ts=<frame> \
+  use_wandb=false use_tb=true
+```
+
+### Particle (legacy path format)
+
 ```sh
 python train.py domain=particle ds_task=poison_l low_path="seed:2 particle dusdi_diayn test"
 ```
+
+### HRL config reference
+
+| Parameter | Default | Description |
+|---|---|---|
+| `low_snapshot_dir` | `""` | Absolute path to `snapshots/` dir (new format) |
+| `snapshot_ts` | `4000000` | Which checkpoint frame to load |
+| `low_level_step` | `50` | Low-level steps per high-level action |
+| `total_timesteps` | `150000` | High-level PPO training steps |
+| `n_env` | `4` | Parallel envs |
+| `n_steps` | `256` | PPO rollout length |
 
 ---
 

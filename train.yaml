@@ -31,7 +31,11 @@ num_eval_episodes: 3
 snapshot_ts: 4000000
 snapshot_base_dir: ./models
 low_path:
-  # TODO: figure out the name of this weight, and use it for illustration
+
+# Direct path to the snapshots/ directory (from new exp_local save format).
+# If set, overrides snapshot_base_dir + low_path construction.
+# Example: low_snapshot_dir="/workspace/.../exp_local/2026.05.01/161417_.../snapshots"
+low_snapshot_dir: ""
 
 # These are used to help with agent initialization
 use_tb: false

@@ -222,35 +222,45 @@ class Workspace:
 
     def load_agent(self, agent):
         """
-        Load agent from snapshot
-        Load actor, critic and diayn, return agent with the new weights
+        Load actor weights from a pretrained snapshot.
+
+        Two modes:
+        - low_snapshot_dir (new): absolute path to the snapshots/ directory from
+          exp_local/... — looks for actor_{snapshot_ts}.pt directly inside it.
+        - low_path (legacy): constructs path as
+          {snapshot_base_dir}/{obs_type}/{domain}/{low_path}/{seed}/actor_{ts}.pt
         """
+        low_snapshot_dir = getattr(self.cfg, 'low_snapshot_dir', '') or ''
+        if low_snapshot_dir:
+            actor_path = Path(to_absolute_path(low_snapshot_dir)) / f'actor_{self.cfg.snapshot_ts}.pt'
+            print(f"loading snapshot {actor_path}")
+            if not actor_path.exists():
+                raise FileNotFoundError(f"Snapshot not found: {actor_path}")
+            with actor_path.open('rb') as f:
+                actor = torch.load(f, map_location=self.device)
+            agent.actor.load_state_dict(actor)
+            return agent
+
+        # Legacy path construction
         snapshot_base_dir = Path(self.cfg.snapshot_base_dir)
         domain = self.cfg.domain
-
-        cfg = self.cfg
         low_path = self.cfg.low_path
         snapshot_dir = snapshot_base_dir / self.cfg.obs_type / domain / low_path
 
         def try_load(seed):
-            actor = snapshot_dir / str(
-                seed) / f'actor_{self.cfg.snapshot_ts}.pt'
+            actor = snapshot_dir / str(seed) / f'actor_{self.cfg.snapshot_ts}.pt'
             actor = get_original_cwd() / actor
-
             print(f"loading snapshot {actor}")
             if not actor.exists():
                 return None
             with actor.open('rb') as f:
                 actor = torch.load(f, map_location=self.device)
             agent.actor.load_state_dict(actor)
-
             return agent
 
-        # try to load current seed
         payload = try_load(self.cfg.seed)
         if payload is not None:
             return payload
-        # otherwise try random seed
         while True:
             seed = np.random.randint(1, 11)
             payload = try_load(seed)
