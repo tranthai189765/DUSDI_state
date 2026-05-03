@@ -8,6 +8,8 @@ _ANTMAZE_ENVS = [
     "antmaze_medium_diverse",
     "antmaze_large_play",
     "antmaze_large_diverse",
+    "antmaze_medium_diverse_dense",   # dense reward variant
+    "antmaze_large_diverse_dense",    # dense reward variant
 ]
 
 _ANT_V5_ENVS = ["ant_v5"]

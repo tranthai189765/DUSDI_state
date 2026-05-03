@@ -43,5 +43,11 @@ antmaze_large_play:
 antmaze_large_diverse:
   episode_length: 1000
 
+antmaze_medium_diverse_dense:
+  episode_length: 1000
+
+antmaze_large_diverse_dense:
+  episode_length: 1000
+
 ant_v5:
   episode_length: 1000

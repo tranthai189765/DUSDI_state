@@ -4,11 +4,13 @@ import numpy as np
 
 
 _TASK_MAP = {
-    'antmaze_umaze':           'AntMaze_UMaze-v5',
-    'antmaze_medium_play':     'AntMaze_Medium_Diverse_GR-v5',   # diverse goal + reset
-    'antmaze_medium_diverse':  'AntMaze_Medium_Diverse_G-v5',    # diverse goal only
-    'antmaze_large_play':      'AntMaze_Large_Diverse_GR-v5',    # diverse goal + reset
-    'antmaze_large_diverse':   'AntMaze_Large_Diverse_G-v5',     # diverse goal only
+    'antmaze_umaze':                  'AntMaze_UMaze-v5',
+    'antmaze_medium_play':            'AntMaze_Medium_Diverse_GR-v5',      # diverse goal + reset, sparse
+    'antmaze_medium_diverse':         'AntMaze_Medium_Diverse_G-v5',       # diverse goal only, sparse
+    'antmaze_large_play':             'AntMaze_Large_Diverse_GR-v5',       # diverse goal + reset, sparse
+    'antmaze_large_diverse':          'AntMaze_Large_Diverse_G-v5',        # diverse goal only, sparse
+    'antmaze_medium_diverse_dense':   'AntMaze_Medium_Diverse_GDense-v5',  # diverse goal only, dense reward
+    'antmaze_large_diverse_dense':    'AntMaze_Large_Diverse_GDense-v5',   # diverse goal only, dense reward
 }
 
 
