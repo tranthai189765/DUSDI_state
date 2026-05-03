@@ -13,6 +13,7 @@ class DMCGymEnv(gym.Env):
     - quadruped: suite.load('quadruped', 'run')
     """
 
+    # Default pretraining task per domain
     _TASK_MAP = {
         'dmc_humanoid_state': ('humanoid', 'run'),
         'dmc_quadruped_state': ('quadruped', 'run'),
@@ -20,8 +21,25 @@ class DMCGymEnv(gym.Env):
         'dmc_cheetah_state': ('cheetah', 'run'),
     }
 
-    def __init__(self, domain_key, max_episode_steps=1000, seed=0):
-        domain, task = self._TASK_MAP[domain_key]
+    # dm_control domain prefix for each domain key
+    _DOMAIN_BASE = {
+        'dmc_humanoid_state': 'humanoid',
+        'dmc_quadruped_state': 'quadruped',
+        'dmc_hopper_state': 'hopper',
+        'dmc_cheetah_state': 'cheetah',
+    }
+
+    def __init__(self, domain_key, max_episode_steps=1000, seed=0, ds_task=None):
+        domain_base, default_task = self._TASK_MAP[domain_key]
+        domain = domain_base
+
+        # ds_task e.g. "hopper_stand" → strip prefix → task = "stand"
+        if ds_task is not None:
+            prefix = self._DOMAIN_BASE[domain_key] + '_'
+            task = ds_task[len(prefix):] if ds_task.startswith(prefix) else default_task
+        else:
+            task = default_task
+
         env = suite.load(
             domain,
             task,

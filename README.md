@@ -297,6 +297,22 @@ ls exp_local/2026.05.01/161417_dmc_cheetah_state_dusdi_diayn_seed2_/snapshots/
 # actor_100000.pt  critic_100000.pt  discriminator_100000.pt  cfg_100000.yaml
 ```
 
+### Supported downstream tasks per domain
+
+| Domain | `ds_task` | dm_control task |
+|---|---|---|
+| `dmc_hopper_state` | `hopper_hop` | hopper / hop (default) |
+| `dmc_hopper_state` | `hopper_stand` | hopper / stand |
+| `dmc_cheetah_state` | `cheetah_run` | cheetah / run (default) |
+| `dmc_quadruped_state` | `quadruped_run` | quadruped / run (default) |
+| `dmc_quadruped_state` | `quadruped_walk` | quadruped / walk |
+| `dmc_quadruped_state` | `quadruped_stand` | quadruped / stand |
+| `dmc_humanoid_state` | `humanoid_run` | humanoid / run (default) |
+| `dmc_humanoid_state` | `humanoid_walk` | humanoid / walk |
+| `dmc_humanoid_state` | `humanoid_stand` | humanoid / stand |
+
+`ds_task` format: `<domain_base>_<dmc_task>`, e.g. `hopper_stand` → strips prefix → loads `suite.load('hopper', 'stand')`.
+
 ### DMC Cheetah — `cheetah_run`
 
 ```sh
@@ -306,13 +322,18 @@ python train.py domain=dmc_cheetah_state ds_task=cheetah_run \
   use_wandb=false use_tb=true
 ```
 
-### DMC Hopper — `hopper_hop`
+### DMC Hopper — `hopper_hop` / `hopper_stand`
 
 ```sh
+# hop (same task as pretraining)
 python train.py domain=dmc_hopper_state ds_task=hopper_hop \
   low_snapshot_dir="/workspace/DUSDI_state/exp_local/2026.05.01/161325_dmc_hopper_state_dusdi_diayn_seed2_/snapshots" \
-  snapshot_ts=100000 \
-  use_wandb=false use_tb=true
+  snapshot_ts=100000 use_wandb=false use_tb=true
+
+# stand (different downstream task)
+python train.py domain=dmc_hopper_state ds_task=hopper_stand \
+  low_snapshot_dir="/workspace/DUSDI_state/exp_local/2026.05.01/161325_dmc_hopper_state_dusdi_diayn_seed2_/snapshots" \
+  snapshot_ts=100000 use_wandb=false use_tb=true
 ```
 
 ### DMC Quadruped / Humanoid
@@ -322,7 +343,7 @@ python train.py domain=dmc_quadruped_state ds_task=quadruped_run \
   low_snapshot_dir="<path>/snapshots" snapshot_ts=<frame> \
   use_wandb=false use_tb=true
 
-python train.py domain=dmc_humanoid_state ds_task=humanoid_run \
+python train.py domain=dmc_humanoid_state ds_task=humanoid_stand \
   low_snapshot_dir="<path>/snapshots" snapshot_ts=<frame> \
   use_wandb=false use_tb=true
 ```

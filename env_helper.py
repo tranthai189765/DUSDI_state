@@ -257,7 +257,8 @@ def make_ds_envs(cfg, actor, device):
             from custom_env.dmc_gym_env import DMCGymEnv
             env = DMCGymEnv(cfg.domain,
                             max_episode_steps=cfg.env[cfg.domain].episode_length,
-                            seed=cfg.seed)
+                            seed=cfg.seed,
+                            ds_task=cfg.ds_task)
             env = wrap_ds_env(env, cfg, actor, device, low_level_step, vis)
             return env
 
