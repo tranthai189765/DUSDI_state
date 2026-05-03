@@ -333,16 +333,65 @@ python train.py domain=dmc_humanoid_state ds_task=humanoid_run \
 python train.py domain=particle ds_task=poison_l low_path="seed:2 particle dusdi_diayn test"
 ```
 
-### HRL config reference
+### HRL architecture
+
+```
+High-level policy (PPO, MlpPolicy)
+  │  action: MultiDiscrete([skill_dim] * skill_channel)
+  │  e.g. cheetah/hopper: MultiDiscrete([4, 4]) → 16 possible skill combos
+  │
+  ▼  repeated low_level_step=50 env steps
+Low-level policy (frozen pretrained actor)
+  │  input: concat(obs, skill_one_hot)   # skill_one_hot shape = skill_channel × skill_dim
+  │  output: continuous action ∈ [-1, 1]^act_dim
+  │
+  ▼
+Environment (dm_control / gymnasium)
+```
+
+- Effective episode length for high-level: `episode_steps / low_level_step = 1000 / 50 = 20` decisions
+- Reward: mean over 50 low-level steps → `reward /= low_level_step`
+
+### PPO hyperparameters
+
+These are SB3 `PPO("MlpPolicy", ...)` defaults, with overrides from `train.yaml`:
+
+| Parameter | Value | Source |
+|---|---|---|
+| `total_timesteps` | **150 000** | `train.yaml` |
+| `n_steps` (rollout per env) | **256** | `train.yaml` |
+| `n_env` | **4** | `train.yaml` |
+| Rollout buffer size | `256 × 4 = 1024` | derived |
+| `batch_size` | 64 | SB3 default |
+| `n_epochs` | 10 | SB3 default |
+| Mini-batches per rollout | `1024 / 64 = 16` | derived |
+| Gradient steps per rollout | `16 × 10 = 160` | derived |
+| Total rollouts | `150 000 / 1024 ≈ 146` | derived |
+| `learning_rate` | 3e-4 | SB3 default |
+| `gamma` | 0.99 | SB3 default |
+| `gae_lambda` | 0.95 | SB3 default |
+| `clip_range` | 0.2 | SB3 default |
+| `normalize_advantage` | True | SB3 default |
+| `ent_coef` | 0.0 | SB3 default |
+| `vf_coef` | 0.5 | SB3 default |
+| `max_grad_norm` | 0.5 | SB3 default |
+| Hidden dim (pi + vf) | **[64, 64]** | SB3 MlpPolicy default |
+
+To override any parameter via CLI:
+```sh
+python train.py domain=dmc_cheetah_state ds_task=cheetah_run \
+  low_snapshot_dir="<path>/snapshots" snapshot_ts=100000 \
+  total_timesteps=500000 n_steps=512 n_env=8 \
+  use_wandb=false use_tb=true
+```
+
+### Checkpoint reference
 
 | Parameter | Default | Description |
 |---|---|---|
 | `low_snapshot_dir` | `""` | Absolute path to `snapshots/` dir (new format) |
-| `snapshot_ts` | `4000000` | Which checkpoint frame to load |
-| `low_level_step` | `50` | Low-level steps per high-level action |
-| `total_timesteps` | `150000` | High-level PPO training steps |
-| `n_env` | `4` | Parallel envs |
-| `n_steps` | `256` | PPO rollout length |
+| `snapshot_ts` | `4000000` | Which checkpoint frame to load (must exist in snapshots/) |
+| `low_level_step` | `50` | Low-level env steps per high-level action |
 
 ---
 

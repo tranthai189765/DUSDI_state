@@ -58,6 +58,9 @@ class DMCGymEnv(gym.Env):
         done = ts.last() or self._step_count >= self._max_episode_steps
         return obs, reward, done, {}
 
+    def get_additional_states(self):
+        return np.array([], dtype=np.float32)
+
     def seed(self, seed=None):
         pass
 
