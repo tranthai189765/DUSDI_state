@@ -72,7 +72,6 @@ class HierarchicalDiscreteEnv(gym.Env):
 			if done:
 				break
 			self.last_observation = observation
-		reward /= self.low_level_steps
 
 		return self.get_full_state(observation), reward, done, info
 
@@ -127,7 +126,6 @@ class HierarchicalContinuousEnv(HierarchicalDiscreteEnv):
 			if done:
 				break
 			self.last_observation = observation
-		reward /= self.low_level_steps
 
 		return self.get_full_state(observation), reward, done, info
 
@@ -179,7 +177,6 @@ class HierarchicalDiaynEnv(HierarchicalDiscreteEnv):
 			if done:
 				break
 			self.last_observation = observation
-		reward /= self.low_level_steps
 
 		return self.get_full_state(observation), reward, done, info
 
