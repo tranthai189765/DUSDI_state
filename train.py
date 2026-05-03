@@ -66,9 +66,13 @@ class Workspace:
         self.device = torch.device("cuda:{}".format(cfg.cuda_id))
         cfg.agent.nstep = 1  # just a place holder
 
-        low_obs, low_act = get_env_obs_act_dim(cfg.domain, cfg.env)
-        low_obs_spec = np.zeros(low_obs)
-        low_act_spec = np.zeros(low_act)
+        # Create a temp env to get real obs/act dims.
+        # get_env_obs_act_dim() depends on DMC_OBS_DIM global which is not yet set
+        # at this point (set inside make_agent → update_partition_config).
+        from env_helper import get_single_gym_env
+        _tmp_env = get_single_gym_env(cfg)
+        low_obs_spec = np.zeros(_tmp_env.observation_space.shape)
+        low_act_spec = np.zeros(_tmp_env.action_space.shape)
 
         # create agent
         self.agent = make_agent(cfg.obs_type,
